@@ -1,0 +1,46 @@
+{% extends 'layout/base.html' %}
+
+{% block title %}Đăng nhập{% endblock %}
+
+{% block content %}
+{%if request.args.get('success_msg')%}
+<div class="alert alert-success">{{ request.args.get('success_msg') }}</div>
+{%endif%}
+<div class="container">
+    <div class="row justify-content-center mt-5">
+        <div class="col-md-6 mb-5">
+            <div class="card shadow-lg">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">ĐĂNG NHẬP</h2>
+                    {% if err_msg %}
+                    <div class="alert alert-danger">{{ err_msg }}</div>
+                    {% endif %}
+                    <form method="post">
+                        <div class="form-group mb-4">
+                            <label for="username" class="form-label">Tên đăng nhập</label>
+                            <input type="text" class="form-control" id="username" name="username"
+                                   placeholder="Tên đăng nhập" required>
+                        </div>
+
+                        <div class="form-group mb-4">
+                            <label for="password" class="form-label">Mật khẩu</label>
+                            <input type="password" class="form-control" id="password" name="password"
+                                   placeholder="Mật khẩu"
+                                   required>
+                        </div>
+                        <div class="text-center">
+                            <a href="/forgot-password" class="btn btn-link">Quên mật khẩu?</a>
+                        </div>
+
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-outline-primary btn-lg px-5">Đăng nhập</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../static/js/inputcheck.js"></script>
+{% endblock %}

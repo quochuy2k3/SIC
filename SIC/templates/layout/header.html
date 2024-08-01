@@ -1,0 +1,34 @@
+<nav class="navbar navbar-expand-sm bg-dark navbar-dark sticky-top shadow">
+    <div class="container-fluid">
+        <a class="navbar-brand fw-bolder " href="/">PHÂN TÍCH SỰ RỜI BỎ KHÁCH HÀNG</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#collapsibleNavbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="collapsibleNavbar">
+
+            <ul class="navbar-nav ms-auto">
+                {% if current_user.is_authenticated %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle me-3" href="#" id="navbarDropdownMenuLink4" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="{{ current_user.avatar }}" width="25" class="rounded-circle img-fluid me-2"/> {{
+                        current_user.username }}
+                    </a>
+                    <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink2">
+                        <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                        <li><a class="dropdown-item" href="/logout">Đăng xuất</a></li>
+                    </ul>
+                </li>
+                {% else %}
+                <li class="nav-item navbar-btn">
+                    <a class="nav-link navbar-btn rounded fw-bold" href="/login" style="color: white; background-color: #0c73cd;">Đăng
+                        nhập</a>
+                </li>
+                <li class="nav-item navbar-btn">
+                    <a class="nav-link navbar-btn bg-secondary rounded mx-2 fw-bold" href="/register" >Đăng ký</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>
