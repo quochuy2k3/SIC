@@ -17,7 +17,6 @@ from SIC.forms import PrescriptionForm, ChangePasswordForm, EditProfileForm, Cha
 from SIC.models import UserRole, Gender, AppointmentList
 from flask_mail import Mail, Message
 
-from SIC.vnpay import vnpay
 
 mail = Mail(app)
 

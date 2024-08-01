@@ -1,6 +1,7 @@
 import os
 import cloudinary
 import joblib
+from dotenv import load_dotenv, dotenv_values
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
@@ -8,6 +9,7 @@ from flask_babel import Babel
 from flask_cors import CORS
 
 app = Flask(__name__)
+load_dotenv()
 
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('SQLALCHEMY_DATABASE_URI')
 app.secret_key = os.getenv('SECRET_KEY')

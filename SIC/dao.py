@@ -1,7 +1,6 @@
 from sqlalchemy import func, desc, update, distinct, extract, select, join, and_, asc
 
 
-from SIC import TIENKHAM
 from SIC.models import *
 
 from SIC.utils import hash_password, verify_password, datetime_now_vn
@@ -627,94 +626,6 @@ def get_medicine_usage_stats(month_str):
 
     return medicine_usage_stats_list
 
-
-def get_revenue_percentage_stats(month_str):
-    # Chuyển chuỗi thành đối tượng datetime
-    date_object = datetime.datetime.strptime(month_str, "%Y-%m")
-
-    # Lấy năm và tháng từ đối tượng datetime
-    year = date_object.year
-    month = date_object.month
-
-    # danh sach tong tien thuoc moi prescription-co-thuoc theo thang
-    month_medicine_revenue_by_drug_assigned_prescription = \
-        db.session.query(extract('month', Prescription.date).label("month"),
-                         extract('year', Prescription.date).label("year"), Prescription.id,
-                         func.sum(MedicineDetail.quantity * MedicineUnit.quantity * Medicine.price).label(
-                             "total_month_medicine_revenue")) \
-            .filter(MedicineDetail.medicine_id.__eq__(Medicine.id)) \
-            .filter(MedicineDetail.prescription_id.__eq__(Prescription.id)) \
-            .filter(MedicineDetail.medicine_unit_id.__eq__(MedicineUnit.id)) \
-            .filter(extract('month', Prescription.date) == month) \
-            .filter(extract('year', Prescription.date) == year) \
-            .group_by(extract('month', Prescription.date)) \
-            .group_by(extract('year', Prescription.date)) \
-            .group_by(Prescription.id).all()
-
-    # tong-tien-cac-prescription-co-thuoc theo thang
-    month_revenue_by_drug_assigned_prescription = 0
-    for item in month_medicine_revenue_by_drug_assigned_prescription:
-        month_revenue_by_drug_assigned_prescription += item.total_month_medicine_revenue + 100000
-
-    # so prescription khong co thuoc theo thang
-    drugless_prescription_by_month_count = db.session.query(func.count(Prescription.id)).filter(
-        Prescription.id.notin_(db.session.query(MedicineDetail.prescription_id))
-    ).filter(extract('month', Prescription.date) == month) \
-        .filter(extract('year', Prescription.date) == year).all()
-
-    # tong-tien-kham cac-prescription-ko-thuoc theo thang
-    month_revenue_by_drugless_prescription = drugless_prescription_by_month_count[0][0] * 100000
-
-    # tong-tien theo thang
-    month_revenue = month_revenue_by_drugless_prescription + month_revenue_by_drug_assigned_prescription
-
-    # danh sach tong tien thuoc cac prescription-co-thuoc theo ngay
-    date_medicine_revenue_by_drug_assigned_prescription = \
-        db.session.query(Prescription.date, func.count(distinct(Patient.id)).label('patient_count'),
-                         (func.sum(MedicineDetail.quantity * MedicineUnit.quantity * Medicine.price)).label(
-                             "total_date_medicine_revenue"), (100 * ((func.sum(
-                MedicineDetail.quantity * MedicineUnit.quantity * Medicine.price)) / month_revenue)).label(
-                'percentage')) \
-            .filter(Prescription.patient_id == Patient.id) \
-            .filter(MedicineDetail.medicine_id.__eq__(Medicine.id)) \
-            .filter(MedicineDetail.prescription_id.__eq__(Prescription.id)) \
-            .filter(MedicineDetail.medicine_unit_id.__eq__(MedicineUnit.id)) \
-            .filter(extract('month', Prescription.date) == month) \
-            .filter(extract('year', Prescription.date) == year) \
-            .group_by(Prescription.date).all()
-
-    # danh sach tong tien kham  cac prescription theo ngay
-    date_revenue_by_drugless_prescription = \
-        db.session.query(Prescription.date,
-                         (func.sum(get_value_policy(TIENKHAM))).label(
-                             "total_date_revenue"),
-                         (100 * (func.sum(get_value_policy(TIENKHAM)) / month_revenue)).label('percentage')) \
-            .filter(extract('month', Prescription.date) == month) \
-            .filter(extract('year', Prescription.date) == year) \
-            .group_by(Prescription.date).all()
-
-
-    date_medicine_revenue_by_drug_assigned_prescription_list = []
-    for row in date_medicine_revenue_by_drug_assigned_prescription:
-        date_medicine_revenue_by_drug_assigned_prescription_list.append({
-            'prescription_date': row[0],
-            'patient_count': row.patient_count,
-            "total_date_medicine_revenue": row.total_date_medicine_revenue,
-            "percentage": row.percentage
-        })
-
-    date_revenue_by_drugless_prescription_list = []
-    for row in date_revenue_by_drugless_prescription:
-        date_revenue_by_drugless_prescription_list.append({
-            'prescription_date': row[0],
-            'total_date_revenue': row.total_date_revenue,
-            "percentage": row.percentage
-        })
-
-    return [
-        date_medicine_revenue_by_drug_assigned_prescription_list,
-        date_revenue_by_drugless_prescription_list
-    ]
 
 
 def count_prescription_by_patient(patient_id):
