@@ -41,7 +41,7 @@ app.config['MOMO_IPN_URL'] = os.getenv('MOMO_IPN_URL')
 
 # Load models
 current_directory = os.path.dirname(os.path.abspath(__file__))
-model_file_path = os.path.join(current_directory, 'models', 'RandomForestModel.joblib')
+model_file_path = os.path.join(current_directory, 'models', 'XGB.pkl')
 scale_file_path = os.path.join(current_directory, 'models', 'minmax_scaler.joblib')
 scaler = joblib.load(scale_file_path)
 loaded_model = joblib.load(model_file_path)

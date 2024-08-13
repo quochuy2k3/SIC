@@ -331,7 +331,6 @@ import pandas as pd
 warnings.filterwarnings("ignore", category=UserWarning)
 
 scale_cols = ['CreditScore', 'Age', 'Balance', 'EstimatedSalary', 'Tenure', 'NumOfProducts']
-cat_cols = ['Geography', 'Gender']
 
 
 @app.route('/predict', methods=['POST'])
@@ -343,8 +342,6 @@ def predict():
 
         # Trích xuất dữ liệu
         credit_score = data.get('credit_score')
-        geography = data.get('geography')
-        gender = data.get('gender')
         age = data.get('age')
         tenure = data.get('tenure')
         balance = data.get('balance')
@@ -356,8 +353,6 @@ def predict():
         # Tạo DataFrame từ dữ liệu đầu vào
         input_data = pd.DataFrame({
             'CreditScore': [credit_score],
-            'Geography': [geography],
-            'Gender': [gender],
             'Age': [age],
             'Tenure': [tenure],
             'Balance': [balance],
@@ -369,10 +364,6 @@ def predict():
 
         # Thay thế các giá trị NaN nếu có
         input_data.fillna(0, inplace=True)
-
-        # Chuyển đổi các cột phân loại trước khi áp dụng get_dummies
-        input_data['Geography'] = input_data['Geography'].map({'France': 0, 'Germany': 1, 'Spain': 2})
-        input_data['Gender'] = input_data['Gender'].map({'Male': 0, 'Female': 1})
 
         # Áp dụng scaling cho các cột số
         input_data[scale_cols] = scaler.transform(input_data[scale_cols])
