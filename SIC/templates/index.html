@@ -238,6 +238,55 @@
         .catch(error => console.error('Error:', error));  // Xử lý lỗi nếu có
     });
 </script>
+
+    <div class="container rounded shadow p-5" style="background-color: white">
+    <h2 class="text-center mb-4">Tải lên File CSV</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="mb-3">
+            <label for="csvFile" class="form-label">Chọn file CSV</label>
+            <input type="file" class="form-control" id="csvFile" name="csvFile" accept=".csv" required>
+        </div>
+        <div class="text-center">
+            <button type="submit" class="btn btn-primary btn-lg">Tải lên</button>
+        </div>
+    </form>
+    <div id="uploadResult" class="mt-4 text-center">
+        <h4>Kết quả:</h4>
+        <p id="resultMessage"></p>
+    </div>
+</div>
+<script>
+    document.getElementById('uploadForm').addEventListener('submit', function (event) {
+        event.preventDefault();  // Ngăn không cho form gửi theo cách mặc định
+
+        var formData = new FormData(this);
+
+        fetch('/upload-csv', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.blob();  // Nhận phản hồi dưới dạng blob
+        })
+        .then(blob => {
+            // Tạo URL cho file tải xuống
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = 'results.csv';  // Tên tệp CSV tải xuống
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);  // Giải phóng URL
+        })
+        .catch(error => {
+            document.getElementById('resultMessage').innerText = 'Lỗi khi tải file: ' + error.message;
+        });
+    });
+</script>
         <!-- ======= About Section ======= -->
         <section id="about" class="mt-5 about">
             <div class="container-fluid">
