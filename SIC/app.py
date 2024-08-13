@@ -341,14 +341,14 @@ def predict():
         print(request.json)
 
         # Trích xuất dữ liệu
-        credit_score = data.get('credit_score')
-        age = data.get('age')
-        tenure = data.get('tenure')
-        balance = data.get('balance')
-        num_of_products = data.get('num_of_products')
-        has_cr_card = data.get('has_cr_card')
-        is_active_member = data.get('is_active_member')
-        estimated_salary = data.get('estimated_salary')
+        credit_score = float(data.get('credit_score', 0))
+        age = float(data.get('age', 0))
+        tenure = float(data.get('tenure', 0))
+        balance = float(data.get('balance', 0))
+        num_of_products = float(data.get('num_of_products', 0))
+        has_cr_card = int(data.get('has_cr_card', 0))
+        is_active_member = int(data.get('is_active_member', 0))
+        estimated_salary = float(data.get('estimated_salary', 0))
 
         # Tạo DataFrame từ dữ liệu đầu vào
         input_data = pd.DataFrame({
@@ -368,13 +368,14 @@ def predict():
         # Áp dụng scaling cho các cột số
         input_data[scale_cols] = scaler.transform(input_data[scale_cols])
         print(input_data)
+
         # Dự đoán với mô hình đã huấn luyện
         prediction = loaded_model.predict(input_data)
+
         # Trả kết quả
         predicted_label = 'Khách hàng có khả năng rời đi' if prediction[0] == 1 else 'Khách hàng không rời đi'
         print(predicted_label)
         return jsonify({'prediction': predicted_label}), 200
-
 
 
 @app.route('/patient/predict_sleep', methods=['GET'])
