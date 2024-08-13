@@ -8,7 +8,7 @@ import random
 import string
 from turtle import pd
 from PIL import Image
-from flask import request, redirect, render_template, jsonify, url_for, session, flash, send_file
+from flask import request, redirect, render_template, jsonify, url_for, session, flash, send_file, Response
 from flask_login import login_user, logout_user, login_required, current_user
 from sqlalchemy.exc import IntegrityError
 from SIC import app, dao, login,db, utils, loaded_model, scaler
@@ -378,6 +378,7 @@ def predict():
         print(predicted_label)
         return jsonify({'prediction': predicted_label}), 200
 
+from io import StringIO
 
 @app.route('/upload-csv', methods=['POST'])
 def upload_csv():
@@ -392,66 +393,28 @@ def upload_csv():
         try:
             # Đọc file CSV
             df = pd.read_csv(file)
-            print("Dữ liệu CSV đọc từ file:")
-            print(df.head())  # In ra các hàng đầu tiên của DataFrame
 
-            # Xóa các dòng có bất kỳ giá trị nào trống
+            # Xử lý dữ liệu như trước
             df.dropna(inplace=True)
-            print("Dữ liệu sau khi xóa các dòng trống:")
-            print(df.head())
-
-            # Tạo DataFrame chỉ với các cột cần thiết cho scaling
             input_data = df[scale_cols].copy()
-            print("Dữ liệu cần scaling:")
-            print(input_data.head())  # In ra các hàng đầu tiên của DataFrame sau khi sao chép
-
-            # Áp dụng scaling cho các cột số
             input_data_scaled = scaler.transform(input_data)
-            print("Dữ liệu sau khi áp dụng scaling:")
-            print(input_data_scaled)  # In ra dữ liệu sau khi scaling
-
-            # Tạo DataFrame mới với dữ liệu đã được scaling
             input_data_scaled_df = pd.DataFrame(input_data_scaled, columns=scale_cols)
-            print("DataFrame sau khi scaling:")
-            print(input_data_scaled_df.head())
-
-            # Đảm bảo tất cả các cột cần thiết đều có mặt
-            # Xác định thứ tự các cột chính xác
             expected_columns = ['CreditScore', 'Age', 'Tenure', 'Balance', 'NumOfProducts', 'HasCrCard', 'IsActiveMember', 'EstimatedSalary']
-
-            # Tạo DataFrame cuối cùng với tất cả các cột cần thiết
             df_final = pd.DataFrame(columns=expected_columns)
-
-            # Sao chép dữ liệu đã scaling vào DataFrame cuối cùng
             df_final[scale_cols] = input_data_scaled_df
-
-            # Thêm cột không được scaling vào DataFrame cuối cùng
             df_final['HasCrCard'] = df['HasCrCard'].values
             df_final['IsActiveMember'] = df['IsActiveMember'].values
-
-            # Đảm bảo thứ tự cột đúng với mong đợi của mô hình
             df_final = df_final[expected_columns]
-
-            print("DataFrame cuối cùng trước khi dự đoán:")
-            print(df_final.head())
-
-            # Dự đoán với mô hình đã huấn luyện
             predictions = loaded_model.predict(df_final)
-            print("Dự đoán:")
-            print(predictions)
-
-            # Thêm kết quả dự đoán vào DataFrame gốc
             df['Prediction'] = ['Khách hàng có khả năng rời đi' if pred == 1 else 'Khách hàng không rời đi' for pred in predictions]
 
-            # Tạo tên tệp CSV với dấu thời gian để đảm bảo tính duy nhất
-            timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-            csv_file = f'results_{timestamp}.csv'
+            # Chuyển DataFrame thành chuỗi CSV
+            csv_buffer = StringIO()
+            df.to_csv(csv_buffer, index=False)
+            csv_buffer.seek(0)
 
-            # Lưu DataFrame với dự đoán vào file CSV
-            df.to_csv(csv_file, index=False)
-
-            # Trả về file CSV
-            return send_file(csv_file, as_attachment=True)
+            # Trả về dữ liệu CSV dưới dạng Response
+            return Response(csv_buffer.getvalue(), mimetype='text/csv', headers={"Content-Disposition": "attachment;filename=results.csv"})
 
         except Exception as e:
             return jsonify({'message': f'An error occurred: {str(e)}'}), 500
